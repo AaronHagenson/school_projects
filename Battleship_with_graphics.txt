@@ -1,0 +1,403 @@
+#----------------BATTLESHIP SIMULATION WITH GRAPHICS----------------------#
+#-------------         BY AARON HAGENSON         ------------------------#
+#---------                CSCI 1523                  -------------------#
+
+
+import pygame
+import sys
+from pygame.locals import *
+import random
+from random import randint
+
+def position_ship(size=0):
+    # This function takes in a single integer as an argument.  This integer represents the 
+    # size of the ship being positioned.  The function returns a list of tuples representing the position
+    # of the ship on the game board.  Each tuple in the list is a set of x-y coordinates. Each of these
+    # coordinates is a point occupied by the ship.  The function ensures that all ships are placed within
+    # the bounds of the game board and that no two ships have overlapping coordinates.
+    
+    boat_size = size
+    alignment = ''
+    ship_position_list = []
+    
+    #randomly generate a first point, randomly determine alignment
+    in_place = False
+    while in_place != True:
+        first_pt = (randint(0,19), randint(0,19))
+    # if the random point is already occupied return to the top of the loop and generate a new point
+        if first_pt in game_board.occupied_points_list:
+            continue
+            
+     # randomly determine if the ship will be placed horizontally or vertically       
+        rand1 = randint(0,1)
+        if rand1 == 0:
+            alignment = 'horizontal'
+        if rand1 == 1:
+            alignment = 'vertical'
+        
+    # send to placing function if the point will allow the ship to be placed within the bounds of the game board  
+        if alignment =='horizontal'and first_pt[0] <= (20-boat_size):
+            horiz_func_return = place_horizontal(first_pt, boat_size)
+            if horiz_func_return == False:
+                continue
+            else:
+                ship_position_list = horiz_func_return
+                in_place = True
+        
+        elif alignment =='vertical' and first_pt[1] <= (20-boat_size):
+            vert_func_return = place_vertical(first_pt, boat_size)
+            if vert_func_return == False:
+                continue
+            else:
+                ship_position_list = vert_func_return
+                in_place = True
+        else:
+            continue
+                
+        #Add the coordinate tuples to the occupied points list so another ship doesn't try to overlap this one
+        game_board.occupied_points_list.extend(ship_position_list) 
+        return ship_position_list  
+
+
+
+def place_horizontal(point_tup, length_int):
+# This function creates a list that represents the horizontal placement of a ship.
+# It takes in a tuple representing a set of x-y coordinates and an integer representing
+# the size of the ship. Using the starting point, the function generates a list of points 
+# along a horizontal axis. It returns a a list of tuples representing the location of the ship on the board.
+# The function checks to ensure that none of the points are already occupied. If a point is already
+# occupied, the function returns False.    
+    coordinate_list = [point_tup]
+    for i in range(length_int-1):
+        new_point = ((point_tup[0] + (i +1)), point_tup[1])
+        if new_point in game_board.occupied_points_list:
+            return False
+        else:
+            coordinate_list.append(new_point)
+   
+    return coordinate_list
+        
+    
+    
+def place_vertical(point_tup, length_int):
+# This function creates a list that represents the vertical placement of a ship.
+# It works the same as the place_horizontal funciton except that it generates a list
+# list of points along a vertical axis.
+
+    coordinate_list = [point_tup]
+    for i in range(length_int-1):
+        new_point = (point_tup[0], point_tup[1] + (i +1))  
+        if new_point in game_board.occupied_points_list:
+            return False                                               
+        else:
+            coordinate_list.append(new_point)
+            
+    return coordinate_list
+    
+        
+            
+        
+def local_search(boat, firstHit):
+# This function is called after a ship is hit. The function takes in the ship-object and the coordinates of the hit as 
+# parameters.  It creates a localized search grid, the size of which is determined by the size of the ship that was hit.
+# Control stays within this function until the ship is sunk. 
+    
+    while boat.health > 0:
+    # Generate a random point that lies within a search grid. The grid size is determined by the size of the ship.
+    # If either the x or y coordinate lies outside of the game board, generate a new point. If the new point has 
+    # already been used, discard it and generate another new point.
+    
+        search_length = boat.size - 1    
+        new_shot_x = randint(firstHit[0] - search_length, firstHit[0] + search_length)
+        if new_shot_x > 19 or new_shot_x < 0:
+            continue
+        new_shot_y = randint(firstHit[1] - search_length, firstHit[1] + search_length)
+        if new_shot_y > 19 or new_shot_y < 0:
+            continue
+        
+        new_shot = (new_shot_x, new_shot_y)
+        if new_shot in game_board.shot_list:
+            continue
+        
+        
+        if new_shot not in game_board.occupied_points_list:
+            game_board.shot_list.append(new_shot)
+            continue
+        elif new_shot in boat.position:
+            boat.health -= 1
+            game_board.shot_list.append(new_shot)
+            
+            
+        # If another boat is hit while searching for the current boat, mark the hit
+        # but keep searching for the original boat. If a different boat is 'accidentally' 
+        # sunk during the local search, decrement the game_board.ships_remaining counter.
+        elif new_shot in game_board.occupied_points_list and new_shot not in boat.position:
+            game_board.shot_list.append(new_shot)
+            
+            
+            if new_shot in pt_boat.position:
+                pt_boat.health -=1
+                if pt_boat.health == 0:
+                    game_board.ships_remaining -=1
+                else:
+                    continue
+                    
+            elif new_shot in crusier.position:
+                crusier.health -=1
+                if crusier.health==0:
+                    game_board.ships_remaining -=1
+                else:
+                    continue 
+                    
+            elif new_shot in destroyer.position:
+                destroyer.health -=1
+                if destroyer.health==0:
+                    game_board.ships_remaining -=1
+                else:
+                    continue 
+                    
+            elif new_shot in battleship.position:
+                battleship.health -=1
+                if battleship.health==0:
+                    game_board.ships_remaining -=1
+                else:
+                    continue 
+                    
+            elif new_shot in carrier.position:
+                carrier.health -=1
+                if carrier.health==0:
+                    game_board.ships_remaining -=1
+                else:
+                    continue 
+                    
+
+    
+    return 
+    
+################################################################################
+
+class Vessel(object):
+    def __init__(self, name):
+        self.name = name
+        
+class GameBoard(object):
+    def __init__(self,ships_remaining=5,shot_list=[], occupied_points_list=[]):
+        self.ships_remaining = ships_remaining
+        self.shot_list = shot_list
+        self.occupied_points_list = occupied_points_list
+        
+         
+
+class PT_Boat(Vessel):
+    def __init__(self, name, size=2, position=[], health=2):
+        Vessel.__init__(self, name)
+        self.size = size
+        self.position = position
+        self.health = health
+        
+    def Set_Position (self):
+        self.position = position_ship(self.size)
+        #print self.position
+        
+        
+        
+class Crusier(Vessel):
+    def __init__(self, name, size=3, position=[], health=3):
+        Vessel.__init__(self, name)
+        self.size = size
+        self.position = position
+        self.health = health
+        
+    def Set_Position (self):
+        self.position = position_ship(self.size) 
+        #print self.position
+       
+        
+class Destroyer(Vessel):
+    def __init__(self, name, size=4, position=[], health=4):
+        Vessel.__init__(self, name)
+        self.size = size
+        self.position = position
+        self.health = health
+        
+    def Set_Position (self):
+        self.position = position_ship(self.size)   
+        #print self.position
+               
+class Battleship(Vessel):
+    def __init__(self, name, size=5, position=[], health=5):
+        Vessel.__init__(self, name)
+        self.size = size
+        self.position = position
+        self.health = health
+        
+    def Set_Position (self):
+        self.position = position_ship(self.size)
+        #print self.position
+                
+class Aircraft_Carrier(Vessel):
+    def __init__(self, name, size=6, position=[], health=6):
+        Vessel.__init__(self, name)
+        self.size = size
+        self.position = position
+        self.health = health
+        
+    def Set_Position (self):
+        self.position = position_ship(self.size)
+        #print self.position
+
+#############################################################################
+
+
+# Create an instance of each ship from its parent class. 
+pt_boat = PT_Boat('Pt Boat')
+crusier = Crusier('Crusier')
+destroyer = Destroyer('Destroyer')
+battleship = Battleship('Battleship')
+carrier = Aircraft_Carrier('Aircraft Carrier') 
+
+# Create an instance of the game board
+game_board = GameBoard()
+game_board.shot_list = []
+game_board.occupied_points_list = []
+
+# Populate the game board by calling the Set_Position method for each ship
+pt_boat.Set_Position()      
+crusier.Set_Position()
+destroyer.Set_Position()      
+battleship.Set_Position()
+carrier.Set_Position()      
+
+ 
+# While there are still ships on the board, generate a random point (shot) on the board and 
+# make sure that it hasn't already been used. If the shot is a miss, generate a new point. When all
+# ships are sunk this loop is exited and the game is over.
+while game_board.ships_remaining > 0:
+    shot = (randint(0,19), randint(0,19))
+    if shot in game_board.shot_list:
+        continue
+# Miss
+    if shot not in game_board.occupied_points_list:
+        game_board.shot_list.append(shot)
+        continue
+        
+# If a shot is a hit, decrease that ship's health by one and pass control to the 
+# local_search function. When the ship is sunk, control comes back here.    
+    elif shot in pt_boat.position:
+        game_board.shot_list.append(shot)
+        pt_boat.health -= 1
+        local_search(pt_boat,shot)
+        game_board.ships_remaining -=1
+        
+        
+                        
+    elif shot in crusier.position:
+        game_board.shot_list.append(shot)
+        crusier.health -= 1
+        local_search(crusier, shot)
+        game_board.ships_remaining -=1
+        
+        
+    elif shot in destroyer.position:
+        game_board.shot_list.append(shot)
+        destroyer.health -=1
+        local_search(destroyer, shot)
+        game_board.ships_remaining -=1
+        
+        
+        
+    elif shot in battleship.position:
+        game_board.shot_list.append(shot)
+        battleship.health -= 1
+        local_search(battleship, shot)
+        game_board.ships_remaining -=1
+        
+        
+        
+    elif shot in carrier.position:
+        game_board.shot_list.append(shot)
+        carrier.health -=1
+        local_search(carrier, shot)
+        game_board.ships_remaining -=1
+
+
+                
+#----------------------------------------------------------------------# 
+# Pygame Setup
+pygame.init()
+size = (505, 505)
+clock = pygame.time.Clock()
+screen = pygame.display.set_mode(size)
+
+pygame.display.set_caption("Battleship")
+
+# Initialize color constants
+BLACK = (0,0,0)
+WHITE = (255,255,255)   # MISS
+RED = (255,0,0)         # HIT
+BLUE = (168,195,237)
+
+
+# Size of the squares on the game board
+width = 20
+height = 20
+margin = 5
+
+
+# Create a grid representing each square on the board. The variable 'grid' is a list of lists.
+# Each sub-list in 'grid' is a list which represents a row of the game board. When the grid is created
+# each square on the board is represented by a '0'. 
+grid = []
+for row in range(20):
+    grid.append([])
+    for column in range(20):
+        grid[row].append(0)
+
+# Map the points contained in the occupied_points_list to their corresponding grid locations        
+for i in game_board.occupied_points_list:
+    column = i[0]
+    row = i[1]
+    grid[row][column]=1 
+    
+                
+#-------------------GAME LOOP----------------------------------------------#    
+done = False
+while not done:
+    for event in pygame.event.get():
+        if event.type ==pygame.QUIT:
+            done = True       
+             
+# Iterate through all of the shots taken during the game. If a shot was a hit,
+# mark it's position in the grid with a '3'. If it was a miss, mark it with a '2'.                   
+    for point in game_board.shot_list:
+        if point in game_board.occupied_points_list:
+            column = point[0]
+            row = point[1]
+            grid[row][column] = 3 
+        else:
+            column = point[0]
+            row = point[1]
+            grid[row][column] = 2    
+   
+        screen.fill(BLACK)
+# Iterate through the grid. Set the default color to blue. If the grid location contains
+# a '1' (occupied point) draw a black square to mark the position of a ship.  If the grid  
+# location contains a '2' (miss) draw a white square.  If the grid location contains a '3' (hit)
+# draw a red square.      
+        for row in range(20):
+            for column in range (20):
+                color = BLUE
+                if grid[row][column]==1:
+                    color = BLACK
+                elif grid[row][column] ==2:
+                    color = WHITE
+                elif grid[row][column] ==3:
+                    color = RED
+                pygame.draw.rect(screen, color, [(margin+width)*column+margin,(margin+height)*row+margin,width,height])
+
+
+        pygame.display.flip()
+        clock.tick(15)
+
+pygame.quit()
+    

@@ -1,0 +1,73 @@
+## Program to estimate the value of pi using randomly generated points ##
+##                 By Aaron Hagenson                                  ##
+
+
+import random
+import math
+import turtle
+import time
+import os
+
+center_x_float = 0.0   # initialize variables for coordinates of the center of the circle (0,0)
+center_y_float = 0.0
+
+in_circle_int = 0      # initialize variables to count number of points that lie within the/
+loop_count_int = 0     # circle and number of times through the loop
+
+radius_float = 300.0
+
+# Draw a circle inscribed in a square using Turtle Graphics:
+
+turtle.hideturtle()
+turtle.speed(10)
+turtle.penup()
+turtle.forward(300)
+turtle.right(90)
+turtle.forward(300)
+turtle.right(90)
+turtle.pendown()
+turtle.forward(600)
+turtle.right(90)
+turtle.forward(600)
+turtle.right(90)
+turtle.forward(600)
+turtle.right(90)
+turtle.forward(600)
+turtle.right(180)
+turtle.forward(300)
+turtle.circle(300)
+turtle.penup()
+
+# Use a loop to generate 1000 random points within the square
+
+while loop_count_int < 1000:        
+    xr_float = random.uniform(-300.0, 300.0)
+    yr_float = random.uniform(-300.0, 300.0)
+    
+    distance_float = math.sqrt(((xr_float - center_x_float)**2) + ((yr_float - center_y_float)**2))  # Calculate distance between randomly generated point and center of circle
+    
+    if distance_float <= radius_float:    # If the point lies within the circle, mark it with a red dot and increment the counters
+        turtle.goto(xr_float, yr_float)
+        turtle.dot("red")
+        loop_count_int += 1
+        in_circle_int += 1
+    
+    else:
+        turtle.goto(xr_float, yr_float)   # If the point is outside the circle, mark it with a black dot and increment the loop counter
+        turtle.dot()
+        loop_count_int += 1
+    
+in_circle_float = float(in_circle_int)
+loop_count_float = float(loop_count_int) 
+ 
+sq_area_float = (radius_float*2)**2                                      # Calculate the areas of the square and the circle
+crc_area_float = (in_circle_float/loop_count_float) * sq_area_float
+    
+pi_float = crc_area_float/(radius_float**2)                              # Calculate the value of pi
+
+print "The value of pi is {:.3f}".format(pi_float)
+
+
+
+time.sleep(30)
+os._exit(1)

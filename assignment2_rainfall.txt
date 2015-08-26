@@ -1,0 +1,220 @@
+########## DISCRETE EVENT SIMULATION--ASSIGNMENT 2  ##############
+#########           COMP SCI 1523                 ###############
+########          BY AARON HAGENSON              ###############
+
+import random
+
+
+def rainfall_generator():
+# This function generates a random number which corresponds to a cumulative frequency.
+# The cumulative frequency is then associated with a rainfall amount (in inches) which is
+# returned by the function.
+
+    x = random.uniform(0.0, 1.0)
+    
+    if 0.0 <= x < 0.71:
+        rainfall = 0.0
+    elif 0.71 <= x < 0.78:
+        rainfall = 0.5
+    elif 0.78 <= x < 0.85:
+        rainfall = 0.75
+    elif 0.85 <= x  <0.92:
+        rainfall = 1.0
+    elif 0.92 <= x < 0.98:
+        rainfall = 1.5
+    elif 0.98 <= x <= 1.0:
+        rainfall = 2.0
+    
+    return rainfall
+    
+    
+def season_func():
+# This function simulates a 108-day growing season. For each day in the season, 
+# it calls the rainfall_generator function to produce a rainfall amount for that day.
+# The rainfall amount is appended to a list and the list representing the rainfall for the
+# season is returned.
+    
+    season_list = []
+    for day in range (1, 109):       
+        season_list.append(rainfall_generator())
+    
+    return season_list
+    
+    
+    
+def daily_average(list):
+# This function takes in a growing_season list and returns the average daily rainfall
+    avg = sum(list)/len(list)
+    return avg
+   
+     
+    
+                                        
+def dry_days(list): 
+# This function takes in a growing_season list as a parameter and calculates the
+# longest period without rain.  It iterates through the list, counts consecutive zeros, and
+# stores the length of the longest count of zeros in the variable longest_dryspell. The function
+# returns the value of the longest_dryspell variable.
+    i = 0
+    zero_count = 0
+    longest_dryspell = 0
+    
+    while i < len(list):    
+        if list[i] == 0.0:        
+            zero_count += 1
+            if i == len(list) - 1 and zero_count > longest_dryspell:   # if the last item in the list is 0.0, store zero_count in longest_dryspell if zero_count is higher
+                longest_dryspell = zero_count
+        elif list[i] != 0.0:                                          # when the end of a string of zeros is reached, check to see if it's longer than the last dry spell.  If so, this becomes the new longest_dryspell.      
+            if zero_count > longest_dryspell:    
+                longest_dryspell = zero_count   
+            zero_count = 0
+        i += 1
+            
+    return longest_dryspell
+    
+    
+    
+                                                          
+def flood_func(list): 
+# This function takes in a growing_season list and calculates the number of floods
+# in the growing season.  A flood is defined as receiving 6 or more inches of rain in
+# a five-day period.  The function iterates through 5-day slices.  If the sum of the rainfall 
+# for the slice is >=6", the flood count is incremented.  If a flood lasts more than 5 days it still 
+# counts as only one flood. The function returns the flood count for the growing season.                                                              
+   
+    i = 0                               
+    flood_count = 0
+    
+    while i < len(list):
+        period = list[i:i+5]                          
+        if sum(period) >= 6.0:
+            previous_period = list[i-1:i+4]
+            if sum(previous_period) < 6.0:             # do not increment counter if new 5-day period is still part of the last flood
+                flood_count += 1
+        i += 1   
+    return flood_count
+    
+    
+def drought_func(list):
+# This function takes in a growing_season list and calculates the number of droughts in the
+# season.  A drought is defined as a period of 12 or more days without rain. The function iterates 
+# through 12-day slices, calculates the total rainfall, and increments the drought_count variable
+# if there was no rain. The drought_count is returned.                                   
+    i = 0
+    drought_count = 0
+
+    while i < len(list):
+        period = list[i:i+12]                            
+        if sum(period) == 0.0 and len(period) == 12:    # If there's no rain and the slice is 12 days long (slices at the end of the list will be less than 12 items long)
+            previous_period = list[i-1:i+11]             # increment the drought count as long as the previous slice wasn't also a drought.
+            if sum(previous_period) != 0.0:              # A period of more than 12 days counts as one drought.
+                drought_count += 1                      
+        i += 1                                          
+    return drought_count
+
+###############################################################################
+
+## SIMULATE ONE GROWING SEASON ##
+
+print "ONE GROWING SEASON"
+print "-" *25
+growing_season = season_func()
+
+## TOTAL RAINFALL FOR THE SEASON ##
+print "The total rainfall for the season was", sum(growing_season), "inches."
+
+## AVERAGE RAINFALL PER DAY ##
+print "The average daily rainfall was {:.3f} inches.".format(daily_average(growing_season))
+
+## LONGEST PERIOD WITHOUT RAIN ##
+print "The longest period without rain was", dry_days(growing_season), "days."
+
+## NUMBER OF DAYS THAT RAINFALL WAS AT LEAST 1.5 INCHES ##
+total = 0
+for i in growing_season:
+    if i >= 1.5:
+        total += 1
+
+print "There were", total, "days with at least 1.5 inches of rain."
+
+## NUMBER OF FLOODS ##
+print "Number of floods this season: ", flood_func(growing_season)
+
+## NUMBER OF DROUGHTS##
+print "Number of droughts this season: ", drought_func(growing_season)
+print
+print
+
+
+#-----------------------------------------------------------------------------#
+
+##SIMULATE A CENTURY OF GROWING SEASONS##
+
+print "100 YEAR SIMULATION"
+print "-" *25
+
+# Create  a list of 100 lists. Each item in the list is one growing season.
+century_list = []                           
+for i in range (0,100):
+    year_list = season_func()
+    century_list.append(year_list)
+    
+
+
+##AVERAGE DAILY RAINFALL##
+
+# Sum the total rainfall for the century and divide by the number of growing season days in the century.
+total = 0                                       
+for i in century_list:
+    total += sum(i)
+       
+century_daily_avg = total/(len(century_list) * 108)
+
+print "The average daily rainfall was {:.3f} inches.".format(century_daily_avg)
+
+##AVERAGE YEARLY RAINFALL##
+
+# Sum the total rainfall for the century and divide by the number of years.
+total = 0
+for i in century_list:                         
+    total += sum(i)
+    
+century_yearly_average = total/len(century_list)
+print "The average yearly rainfall was {:.3f} inches.".format(century_yearly_average)
+
+
+##NUMBER OF DROUGHTS##  
+
+# Iterate through each growing season,count the number of droughts with the drought function, and add to the total.
+drought_total = 0
+for i in century_list:
+    func_return = drought_func(i)
+    drought_total += func_return
+    
+print "There were ", drought_total, "droughts this century."
+
+##NUMBER OF FLOODS##  
+
+# Iterate through each growing season, count the number of floods with the flood function, and add to the total.
+flood_total = 0
+for i in century_list:
+    func_return = flood_func(i)
+    flood_total += func_return
+    
+print "There were ", flood_total, "floods this century."
+       
+    
+    
+
+
+
+
+            
+  
+        
+        
+        
+
+
+    
+    

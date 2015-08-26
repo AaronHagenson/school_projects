@@ -1,0 +1,309 @@
+<!DOCTYPE>
+<html lang="en">
+<head>
+<title>UJR Animation</title>
+<style>
+    body{
+          background-color: #00a8a1;
+          overflow: hidden;
+          }
+
+    #button1{
+            position: absolute;
+            top: 400px;
+            left: 40%;
+            background-color: #00a8a1;
+            font-size: 3em;
+            font-family: cursive;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            visibility: visible;
+            }
+      
+            
+    #circle{
+            position: relative;
+            top: 250px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            visibility: hidden;
+            z-index: 1;
+            }
+    #ujrtext{
+            z-index: 2;
+            visibility: hidden;
+            position: relative;
+            top: -110px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            width: 350px;
+            }
+            
+    #uncle  {
+            position: absolute;
+            top: 30;
+            right: -450;
+            z-index: 5000;
+            } 
+
+    #jesse  {
+            position: absolute;
+            top: 30;
+            left: -450;
+            z-index: 4000;
+            }
+    
+    #unclejesse
+            {
+            display: block;
+            position: relative;
+            top: -550px;
+            margin-left: auto;
+            margin-right: auto;
+            visibility: hidden;
+            }
+    
+    #rippers
+            {
+            display: block;
+            position: absolute;
+            top: 1000px;
+            left: 35%;
+            }
+            
+    #fullLogo
+            {
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            position: relative;
+            visibility: hidden;
+            z-index: 6000;
+            }
+            
+
+            
+            
+
+
+</style>
+
+<script type="text/javascript" src="prototype.js"></script>
+<script type="text/javascript" src="scriptaculous.js"></script>
+
+<script type="text/javascript">
+
+
+
+// global variables
+var cycle = 0;
+var cycle2 = 0; // used for accessing the opacityArray for the ujrtext
+var cycle3 = 0; // used for accessing uncleArray
+var cycle4 = 0; // used for accessing the jesseArray
+var cycle5 = 0; // used for accessing the rippersArray
+var cycle6 = 0; // used for accessing the opacityArray for the fullLogo
+var mainTimer;
+var functionTimer; 
+
+
+
+// generate array for opacity values
+var opacityArray = [];
+var value = 0.0;
+var i = 0;
+while(value <= 1.0)
+{
+    opacityArray[i] = value;
+    i++;
+    value += 0.005;
+}
+
+// generate array to move 'Uncle' text
+var uncleArray = [];
+var value2 = -450;
+var j = 0;
+while(value2 <= 6000)
+{
+    uncleArray[j] = value2;
+    j++;
+    value2 += 20;
+}
+
+// generate array to move 'Jesse' text
+var jesseArray = [];
+var value3 = -450;
+var k = 0;
+while(value3 <= 6000)
+{
+    jesseArray[k] = value3;
+    k++;
+    value3 += 20;
+}
+
+// generate array to move 'Rippers' text up, then down
+var rippersArray = [];
+var value4 = 1000;
+var m = 0;
+while(value4 >= 500)
+{
+    rippersArray[m] = value4;
+    m++;
+    value4 -= 10;
+}
+
+while(value4 <= 1000)
+{
+    rippersArray[m] = value4;
+    m++;
+    value4 +=10;
+}
+
+
+
+/* This function creates 2 timers. mainTimer is used to 
+continuously increment the cycle variable at a set interval.
+functionTimer is used to continuously call the masterFunction, 
+which is used to determine which animation to trigger. */
+
+function start()
+{
+    // hide the start button
+    document.getElementById('button1').style.visibility = 'hidden';
+    
+     // height, width and visibility of circle must be set by script in order to change them
+    document.images[0].height = 10;
+    document.images[0].width = 10;
+    document.images[0].style.visibility = 'visible'; 
+    document.getElementById('ujrtext').style.opacity = 0.0;
+    
+    mainTimer = setInterval(mainCycle, 20);
+    functionTimer = setInterval(masterFunction, 20);
+} 
+
+function mainCycle()
+{
+    cycle +=1;
+}
+
+/* This function controls the triggering of each animation based on the
+   cycle variable */
+function masterFunction()
+{
+    if(cycle <= 45)
+        growCircle();
+    else if(cycle > 65 && cycle <= 300)
+    {   document.getElementById('ujrtext').style.visibility = 'visible';
+        fadeText();
+        if (cycle ==200)
+            $('body').morph('background:#e96847;');
+    }
+    else if(cycle == 350)
+       $('ujrtext').fade();
+    else if(cycle == 390)
+       $('circle').puff(); 
+    else if(cycle >= 440 && cycle < 600)
+       {
+          moveUncle();
+          moveJesse();
+          moveRippers();
+        }
+    else if(cycle >= 600 && cycle <=900)
+        {
+        document.getElementById('fullLogo').style.visibility = 'visible';
+        fadeFullLogo();
+        changeBG();
+        }
+    else if(cycle == 960 || cycle == 1080 || cycle == 1200 || cycle == 1320)
+        $('body').morph('background:#e96847;');
+    else if(cycle == 1020 || cycle == 1140 || cycle == 1260 || cycle == 1380)
+        $('body').morph('background:#00a8a1;');
+}    
+
+
+// This function increases the size of the circle
+function growCircle()
+{
+    var growthRate = 1.1;
+    var circle = document.images[0]; // cache the circle image
+
+    // increase the height and width
+    circle.height = circle.height*growthRate;
+    circle.width = circle.width*growthRate;        
+}
+
+// This function animates the opacity of the ujr text 
+function fadeText()
+{
+    var text = document.getElementById('ujrtext');
+    
+    // for each iteration of the function, reference the opacity array to set the opacity value of the text
+    text.style.opacity = opacityArray[cycle2];
+    cycle2++;
+}
+
+// This function moves the 'Uncle' text 
+function moveUncle()
+{
+    var uncle = document.getElementById('uncle');
+    uncle.style.right = uncleArray[cycle3];
+    cycle3++;
+}
+
+// This function moves the 'Jesse' text
+function moveJesse()
+{
+    var jesse = document.getElementById('jesse');
+    jesse.style.left = jesseArray[cycle4];
+    cycle4++;
+}
+
+// This function moves the 'Rippers' text
+function moveRippers()
+{
+    var rippers = document.getElementById('rippers');
+    rippers.style.top = rippersArray[cycle5];
+    cycle5++;
+
+}
+
+// This function toggles the background color
+function changeBG()
+{
+    // Change the b/g color every 5 cycles
+    if(cycle % 5 == 0 && cycle % 10 != 0)
+        document.body.style.backgroundColor = 'e96847';
+    else if(cycle % 5 == 0)
+        document.body.style.backgroundColor = '00a8a1';
+}
+
+// This function fades in the fullLogo
+function fadeFullLogo()
+{
+    var logo = document.getElementById('fullLogo');
+    
+    // for each iteration of the function, reference the opacity array to set the opacity value of the logo
+    logo.style.opacity = opacityArray[cycle6];
+    cycle6++;
+}
+
+
+
+</script>
+</head>
+<body id='body'>
+
+<img src="blankCircle.png"  id="circle" alt="circle" / >
+<img src="ujrText.png" id='ujrtext' alt="UJR" />
+<img src="uncle.png" id="uncle" alt="uncle" />
+<img src="jesse.png" id="jesse" alt="jesse" />
+<img src="unclejesse.png" id="unclejesse" alt="uncle jesse" />
+<img src="rippers.png" id="rippers" alt="rippers" />
+<img src="fullLogo.png" id="fullLogo" alt="Logo" />
+
+<input type="button" id="button1" value="Start" onclick="start()">
+
+</body>
+</html>
